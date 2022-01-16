@@ -1,0 +1,235 @@
+Aggregates in R
+# load packages
+library(readr)
+library(dplyr)
+# load ad clicks data
+ad_clicks <- read_csv("ad_clicks.csv")
+# inspect ad_clicks here:
+head(ad_clicks)
+user_id
+<chr>
+utm_source
+<chr>
+day
+<chr>
+ad_click_timestamp
+<chr>
+ad_clicked
+<lgl>
+008b7c6c-7272-471e-b90e-930d548bd8d7	google	6 - Saturday	7:18	TRUE	
+009abb94-5e14-4b6c-bb1c-4f4df7aa7557	facebook	7 - Sunday	NA	FALSE	
+00f5d532-ed58-4570-b6d2-768df5f41aed	twitter	2 - Tuesday	NA	FALSE	
+011adc64-0f44-4fd9-a0bb-f1506d2ad439	google	2 - Tuesday	NA	FALSE	
+012137e6-7ae7-4649-af68-205b4702169c	facebook	7 - Sunday	NA	FALSE	
+013b0072-7b72-40e7-b698-98b4d0c9967f	facebook	1 - Monday	NA	FALSE	
+6 rows | 1-5 of 6 columns
+# define views_by_utm here:
+views_by_utm <- ad_clicks %>%
+  group_by(utm_source) %>%
+  summarize(count = n())
+
+head(views_by_utm)
+utm_source
+<chr>
+count
+<int>
+email	255
+facebook	504
+google	680
+twitter	215
+4 rows
+# define clicks_by_utm here:
+clicks_by_utm <- ad_clicks %>%
+  group_by(utm_source, ad_clicked) %>%
+  summarize(count = n())
+`summarise()` has grouped output by 'utm_source'. You can override using the `.groups` argument.
+head(clicks_by_utm)
+utm_source
+<chr>
+ad_clicked
+<lgl>
+count
+<int>
+email	FALSE	175
+email	TRUE	80
+facebook	FALSE	324
+facebook	TRUE	180
+google	FALSE	441
+google	TRUE	239
+6 rows
+# define percentage_by_utm here:
+percentage_by_utm <- clicks_by_utm %>%
+  group_by(utm_source) %>%
+  mutate(percentage = count/sum(count)) %>%
+  filter(ad_clicked == TRUE)
+
+head(percentage_by_utm)
+utm_source
+<chr>
+ad_clicked
+<lgl>
+count
+<int>
+percentage
+<dbl>
+email	TRUE	80	0.3137255
+facebook	TRUE	180	0.3571429
+google	TRUE	239	0.3514706
+twitter	TRUE	66	0.3069767
+4 rows
+# define experiment_split here:
+experiment_split <- ad_clicks %>%
+  group_by(experimental_group) %>%
+  summarize(count = n())
+
+head(experiment_split)
+experimental_group
+<chr>
+count
+<int>
+A	827
+B	827
+2 rows
+# define clicks_by_experiment here:
+clicks_by_experiment <- ad_clicks %>%
+  group_by(experimental_group, ad_clicked) %>%
+  summarize(count = n())
+`summarise()` has grouped output by 'experimental_group'. You can override using the `.groups` argument.
+head(clicks_by_experiment)
+experimental_group
+<chr>
+ad_clicked
+<lgl>
+count
+<int>
+A	FALSE	517
+A	TRUE	310
+B	FALSE	572
+B	TRUE	255
+4 rows
+# define a_clicks here:
+a_clicks <- ad_clicks %>%
+  filter(experimental_group == "A")
+
+head(a_clicks)
+user_id
+<chr>
+utm_source
+<chr>
+day
+<chr>
+ad_click_timestamp
+<chr>
+ad_clicked
+<lgl>
+008b7c6c-7272-471e-b90e-930d548bd8d7	google	6 - Saturday	7:18	TRUE	
+00f5d532-ed58-4570-b6d2-768df5f41aed	twitter	2 - Tuesday	NA	FALSE	
+013b0072-7b72-40e7-b698-98b4d0c9967f	facebook	1 - Monday	NA	FALSE	
+0153d85b-7660-4c39-92eb-1e1acd023280	google	4 - Thursday	NA	FALSE	
+01555297-d6e6-49ae-aeba-1b196fdbb09f	google	3 - Wednesday	NA	FALSE	
+018cea61-19ea-4119-895b-1a4309ccb148	email	1 - Monday	18:33	TRUE	
+6 rows | 1-5 of 6 columns
+# define b_clicks here:
+b_clicks <- ad_clicks %>%
+  filter(experimental_group == "B")
+
+head(b_clicks)
+user_id
+<chr>
+utm_source
+<chr>
+day
+<chr>
+ad_click_timestamp
+<chr>
+ad_clicked
+<lgl>
+009abb94-5e14-4b6c-bb1c-4f4df7aa7557	facebook	7 - Sunday	NA	FALSE	
+011adc64-0f44-4fd9-a0bb-f1506d2ad439	google	2 - Tuesday	NA	FALSE	
+012137e6-7ae7-4649-af68-205b4702169c	facebook	7 - Sunday	NA	FALSE	
+01a210c3-fde0-4e6f-8efd-4f0e38730ae6	email	2 - Tuesday	15:21	TRUE	
+01adb2e7-f711-4ae4-a7c6-29f48457eea1	google	3 - Wednesday	NA	FALSE	
+01ae0361-7d17-4760-a2c8-23977a46fb78	facebook	4 - Thursday	7:11	TRUE	
+6 rows | 1-5 of 6 columns
+# define a_clicks_by_day here:
+a_clicks_by_day <- a_clicks %>%
+  group_by(day, ad_clicked) %>%
+  summarize(count = n())
+`summarise()` has grouped output by 'day'. You can override using the `.groups` argument.
+head(a_clicks_by_day)
+day
+<chr>
+ad_clicked
+<lgl>
+count
+<int>
+1 - Monday	FALSE	70
+1 - Monday	TRUE	43
+2 - Tuesday	FALSE	76
+2 - Tuesday	TRUE	43
+3 - Wednesday	FALSE	86
+3 - Wednesday	TRUE	38
+6 rows
+# define b_clicks_by_day here:
+b_clicks_by_day <- b_clicks %>%
+  group_by(day, ad_clicked) %>%
+  summarize(count = n())
+`summarise()` has grouped output by 'day'. You can override using the `.groups` argument.
+head(b_clicks_by_day)
+day
+<chr>
+ad_clicked
+<lgl>
+count
+<int>
+1 - Monday	FALSE	81
+1 - Monday	TRUE	32
+2 - Tuesday	FALSE	74
+2 - Tuesday	TRUE	45
+3 - Wednesday	FALSE	89
+3 - Wednesday	TRUE	35
+6 rows
+# define a_percentage_by_day here:
+a_percentage_by_day <- a_clicks_by_day %>%
+  group_by(day) %>%
+  mutate(percentage = count/sum(count)) %>%
+  filter(ad_clicked == TRUE)
+
+head(a_percentage_by_day)
+day
+<chr>
+ad_clicked
+<lgl>
+count
+<int>
+percentage
+<dbl>
+1 - Monday	TRUE	43	0.3805310
+2 - Tuesday	TRUE	43	0.3613445
+3 - Wednesday	TRUE	38	0.3064516
+4 - Thursday	TRUE	47	0.4051724
+5 - Friday	TRUE	51	0.3984375
+6 - Saturday	TRUE	45	0.3813559
+6 rows
+# define b_percentage_by_day here:
+b_percentage_by_day <- b_clicks_by_day %>%
+  group_by(day) %>%
+  mutate(percentage = count/sum(count)) %>%
+  filter(ad_clicked == TRUE)
+
+head(b_percentage_by_day)
+day
+<chr>
+ad_clicked
+<lgl>
+count
+<int>
+percentage
+<dbl>
+1 - Monday	TRUE	32	0.2831858
+2 - Tuesday	TRUE	45	0.3781513
+3 - Wednesday	TRUE	35	0.2822581
+4 - Thursday	TRUE	29	0.2500000
+5 - Friday	TRUE	38	0.2968750
+6 - Saturday	TRUE	42	0.3559322
+6 rows
